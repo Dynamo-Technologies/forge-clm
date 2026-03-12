@@ -3,6 +3,7 @@
   import type { AuthRole } from "$lib/types.js";
   import Home from "lucide-svelte/icons/home";
   import FileText from "lucide-svelte/icons/file-text";
+  import FolderOpen from "lucide-svelte/icons/folder-open";
   import ShieldCheck from "lucide-svelte/icons/shield-check";
   import GitBranch from "lucide-svelte/icons/git-branch";
   import Inbox from "lucide-svelte/icons/inbox";
@@ -21,6 +22,7 @@
   const ICONS: Record<string, ComponentType> = {
     home: Home,
     "file-text": FileText,
+    "folder-open": FolderOpen,
     "shield-check": ShieldCheck,
     "git-branch": GitBranch,
     inbox: Inbox,

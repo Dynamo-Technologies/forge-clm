@@ -75,6 +75,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/", icon: "home" },
   { label: "Contracts", href: "/contracts", icon: "file-text" },
+  { label: "Documents", href: "/documents", icon: "folder-open" },
   { label: "Compliance", href: "/compliance", icon: "shield-check" },
   { label: "Subcontracts", href: "/subcontracts", icon: "git-branch" },
   { label: "Requests", href: "/requests", icon: "inbox" },

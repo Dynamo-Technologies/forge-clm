@@ -19,10 +19,18 @@ import {
   approvalQueue,
   communicationsLog,
 } from "./schema.js";
+import {
+  contractFolders,
+  ingestedDocuments,
+  documentExtractedFields,
+  contractVehicles,
+  purchaseOrders,
+  keyPersonnel,
+} from "./schema-documents.js";
 
 // ─── contracts ───────────────────────────────────────────────────────
 
-export const contractsRelations = relations(contracts, ({ many }) => ({
+export const contractsRelations = relations(contracts, ({ one, many }) => ({
   options: many(contractOptions),
   modifications: many(modifications),
   clins: many(clins),
@@ -34,6 +42,14 @@ export const contractsRelations = relations(contracts, ({ many }) => ({
   smallBusinessPlans: many(smallBusinessPlans),
   approvalQueueItems: many(approvalQueue),
   communicationsLog: many(communicationsLog),
+  contractFolders: many(contractFolders),
+  ingestedDocuments: many(ingestedDocuments),
+  purchaseOrders: many(purchaseOrders),
+  keyPersonnel: many(keyPersonnel),
+  vehicle: one(contractVehicles, {
+    fields: [contracts.contractVehicleId],
+    references: [contractVehicles.id],
+  }),
 }));
 
 // ─── contract_options ────────────────────────────────────────────────
@@ -214,5 +230,62 @@ export const communicationsLogRelations = relations(communicationsLog, ({ one })
   modification: one(modifications, {
     fields: [communicationsLog.modId],
     references: [modifications.id],
+  }),
+}));
+
+// ─── contract_folders ───────────────────────────────────────────────
+
+export const contractFoldersRelations = relations(contractFolders, ({ one, many }) => ({
+  contract: one(contracts, {
+    fields: [contractFolders.contractId],
+    references: [contracts.id],
+  }),
+  documents: many(ingestedDocuments),
+}));
+
+// ─── ingested_documents ─────────────────────────────────────────────
+
+export const ingestedDocumentsRelations = relations(ingestedDocuments, ({ one, many }) => ({
+  folder: one(contractFolders, {
+    fields: [ingestedDocuments.folderId],
+    references: [contractFolders.id],
+  }),
+  contract: one(contracts, {
+    fields: [ingestedDocuments.contractId],
+    references: [contracts.id],
+  }),
+  extractedFields: many(documentExtractedFields),
+}));
+
+// ─── document_extracted_fields ──────────────────────────────────────
+
+export const documentExtractedFieldsRelations = relations(documentExtractedFields, ({ one }) => ({
+  document: one(ingestedDocuments, {
+    fields: [documentExtractedFields.documentId],
+    references: [ingestedDocuments.id],
+  }),
+}));
+
+// ─── contract_vehicles ──────────────────────────────────────────────
+
+export const contractVehiclesRelations = relations(contractVehicles, ({ many }) => ({
+  contracts: many(contracts),
+}));
+
+// ─── purchase_orders ────────────────────────────────────────────────
+
+export const purchaseOrdersRelations = relations(purchaseOrders, ({ one }) => ({
+  contract: one(contracts, {
+    fields: [purchaseOrders.contractId],
+    references: [contracts.id],
+  }),
+}));
+
+// ─── key_personnel ──────────────────────────────────────────────────
+
+export const keyPersonnelRelations = relations(keyPersonnel, ({ one }) => ({
+  contract: one(contracts, {
+    fields: [keyPersonnel.contractId],
+    references: [contracts.id],
   }),
 }));

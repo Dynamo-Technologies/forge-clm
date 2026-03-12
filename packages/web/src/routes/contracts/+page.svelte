@@ -60,6 +60,22 @@
     { key: "popStart", label: "PoP Start", sortable: true },
     { key: "popEnd", label: "PoP End", sortable: true },
   ];
+
+  const TABS = [
+    { key: "active", label: "Active Contracts" },
+    { key: "archived", label: "Archived" },
+    { key: "vehicles", label: "Contract Vehicles" },
+    { key: "all", label: "All" },
+  ];
+
+  let activeTab = "active";
+
+  function tabUrl(tab: string): string {
+    const params = new URLSearchParams();
+    if (tab !== "all") params.set("tab", tab);
+    params.set("page", "1");
+    return `?${params}`;
+  }
 </script>
 
 <div class="page-enter flex gap-6" data-testid="contracts-page">
@@ -125,6 +141,25 @@
       >
         + New Contract
       </a>
+    </div>
+
+    <!-- Library Tabs -->
+    <div class="mb-4 border-b border-slate-300">
+      <nav class="-mb-px flex gap-4" data-testid="library-tabs">
+        {#each TABS as tab}
+          <a
+            href={tabUrl(tab.key)}
+            class="whitespace-nowrap border-b-2 pb-2.5 text-sm font-medium transition-colors duration-150
+              {activeTab === tab.key
+                ? 'border-coral text-slate-900 font-heading'
+                : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 font-body'}"
+            on:click|preventDefault={() => (activeTab = tab.key)}
+            data-testid="tab-{tab.key}"
+          >
+            {tab.label}
+          </a>
+        {/each}
+      </nav>
     </div>
 
     <!-- Search -->

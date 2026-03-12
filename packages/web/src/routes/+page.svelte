@@ -1,12 +1,13 @@
 <script lang="ts">
-  import type { DashboardMetrics, ComplianceItem, ActivityEvent } from "$lib/types.js";
-  import { FileText, DollarSign, Wallet, Clock, CheckCircle2, XCircle, Loader2 } from "lucide-svelte";
+  import type { DashboardMetrics, ComplianceItem, ActivityEvent, IngestionStats } from "$lib/types.js";
+  import { FileText, DollarSign, Wallet, Clock, CheckCircle2, XCircle, Loader2, Database, HardDrive } from "lucide-svelte";
 
   export let data: {
     metrics: DashboardMetrics | null;
     complianceDue: ComplianceItem[];
     overdueItems: ComplianceItem[];
     activity: ActivityEvent[];
+    ingestionStats: IngestionStats | null;
   };
 
   const metrics = data.metrics ?? {
@@ -15,6 +16,22 @@
     totalFunded: 0,
     pendingActions: 0,
   };
+
+  const ingestion = data.ingestionStats;
+
+  function formatBytes(bytes: number): string {
+    if (bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
+  }
+
+  function extractionPercent(stats: IngestionStats): number {
+    if (stats.totalDocuments === 0) return 0;
+    const completed = stats.byStatus["COMPLETED"] ?? 0;
+    return Math.round((completed / stats.totalDocuments) * 100);
+  }
 
   function formatCurrency(value: number): string {
     return new Intl.NumberFormat("en-US", {
@@ -104,6 +121,83 @@
       </div>
     </div>
   </section>
+
+  <!-- Document Ingestion Metrics -->
+  {#if ingestion}
+    <section data-testid="ingestion-section" class="mb-8">
+      <h2 class="font-heading font-semibold text-lg text-slate-900 mb-4">Document Ingestion</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-slate-300 transition-shadow duration-200 hover:shadow-md">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-full flex items-center justify-center bg-ash/10 text-ash">
+              <Database size={20} />
+            </div>
+            <div>
+              <div class="font-body text-sm text-slate-700">Total Documents</div>
+              <div class="font-dramatic text-3xl font-bold text-slate-900">{ingestion.totalDocuments.toLocaleString()}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-slate-300 transition-shadow duration-200 hover:shadow-md">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-full flex items-center justify-center bg-ash/10 text-ash">
+              <HardDrive size={20} />
+            </div>
+            <div>
+              <div class="font-body text-sm text-slate-700">Total Size</div>
+              <div class="font-dramatic text-3xl font-bold text-slate-900">{formatBytes(ingestion.totalSizeBytes)}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-slate-300 transition-shadow duration-200 hover:shadow-md">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-full flex items-center justify-center bg-ash/10 text-ash">
+              <CheckCircle2 size={20} />
+            </div>
+            <div>
+              <div class="font-body text-sm text-slate-700">Extraction Coverage</div>
+              <div class="font-dramatic text-3xl font-bold text-slate-900">{extractionPercent(ingestion)}%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-slate-300 transition-shadow duration-200 hover:shadow-md">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-full flex items-center justify-center bg-ash/10 text-ash">
+              <FileText size={20} />
+            </div>
+            <div>
+              <div class="font-body text-sm text-slate-700">Libraries</div>
+              <div class="font-dramatic text-3xl font-bold text-slate-900">{Object.keys(ingestion.byLibrary).length}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Library breakdown -->
+      {#if Object.keys(ingestion.byLibrary).length > 0}
+        <div class="mt-4 bg-white rounded-lg shadow-sm p-5 border border-slate-300">
+          <h3 class="font-heading text-sm font-semibold text-slate-900 mb-3">Documents by Library</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {#each Object.entries(ingestion.byLibrary).sort((a, b) => b[1] - a[1]) as [lib, docCount]}
+              <div class="flex items-center justify-between py-1.5 px-3 rounded bg-slate-50">
+                <span class="font-body text-sm text-slate-700 truncate">{lib}</span>
+                <span class="font-mono text-sm font-medium text-slate-900 ml-2">{docCount.toLocaleString()}</span>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
+      {#if ingestion.lastSyncAt}
+        <div class="mt-2 font-body text-xs text-slate-500">
+          Last sync: {formatDate(ingestion.lastSyncAt)}
+        </div>
+      {/if}
+    </section>
+  {/if}
 
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
     <!-- Compliance Status -->

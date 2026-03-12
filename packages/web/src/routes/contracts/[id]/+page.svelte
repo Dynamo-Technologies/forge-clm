@@ -8,6 +8,7 @@
     ContractOption,
     Communication,
     FsmTransition,
+    IngestedDocument,
   } from "$lib/types.js";
   import OverviewTab from "../../../components/contract/OverviewTab.svelte";
   import ClausesTab from "../../../components/contract/ClausesTab.svelte";
@@ -27,6 +28,7 @@
     options: ContractOption[];
     communications: Communication[];
     transitions: FsmTransition[];
+    documents: IngestedDocument[];
   };
 
   const TABS = [
@@ -106,7 +108,7 @@
       {:else if activeTab === "Options"}
         <OptionsTab options={data.options} />
       {:else if activeTab === "Documents"}
-        <DocumentsTab />
+        <DocumentsTab contractId={contract.id} documents={data.documents} />
       {:else if activeTab === "Communications"}
         <CommunicationsTab communications={data.communications} />
       {/if}

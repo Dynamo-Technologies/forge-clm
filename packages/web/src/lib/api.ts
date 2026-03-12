@@ -29,6 +29,11 @@ import type {
   SystemHealth,
   ReportType,
   ReportResult,
+  ContractFolder,
+  IngestedDocument,
+  DocumentDetail,
+  IngestionStats,
+  DocumentSearchResult,
 } from "./types.js";
 
 export class ApiClient {
@@ -306,6 +311,99 @@ export class ApiClient {
       method: "POST",
       body: JSON.stringify({ type, startDate, endDate }),
     });
+  }
+
+  // ─── Documents ───────────────────────────────────────────────────
+
+  async getDocuments(
+    params?: {
+      page?: number;
+      limit?: number;
+      library?: string;
+      category?: string;
+      contractId?: string;
+      status?: string;
+      fileType?: string;
+      search?: string;
+    },
+  ): Promise<PaginatedResponse<IngestedDocument>> {
+    const query = new URLSearchParams();
+    if (params?.page) query.set("page", String(params.page));
+    if (params?.limit) query.set("limit", String(params.limit));
+    if (params?.library) query.set("library", params.library);
+    if (params?.category) query.set("category", params.category);
+    if (params?.contractId) query.set("contractId", params.contractId);
+    if (params?.status) query.set("status", params.status);
+    if (params?.fileType) query.set("fileType", params.fileType);
+    if (params?.search) query.set("search", params.search);
+    const qs = query.toString();
+    return this.request<PaginatedResponse<IngestedDocument>>(
+      `/documents${qs ? `?${qs}` : ""}`,
+    );
+  }
+
+  async getDocument(id: string): Promise<DocumentDetail> {
+    return this.request<DocumentDetail>(`/documents/${id}`);
+  }
+
+  async getDocumentText(id: string): Promise<{ id: string; filename: string; extractedText: string | null }> {
+    return this.request(`/documents/${id}/text`);
+  }
+
+  async getDocumentDownloadUrl(id: string): Promise<{ url: string; filename: string; expiresIn: number }> {
+    return this.request(`/documents/${id}/download`);
+  }
+
+  async getFolders(
+    params?: { library?: string; category?: string },
+  ): Promise<ContractFolder[]> {
+    const query = new URLSearchParams();
+    if (params?.library) query.set("library", params.library);
+    if (params?.category) query.set("category", params.category);
+    const qs = query.toString();
+    return this.request<ContractFolder[]>(
+      `/folders${qs ? `?${qs}` : ""}`,
+    );
+  }
+
+  async getFolderDocuments(
+    folderId: string,
+    params?: { page?: number; limit?: number },
+  ): Promise<PaginatedResponse<IngestedDocument>> {
+    const query = new URLSearchParams();
+    if (params?.page) query.set("page", String(params.page));
+    if (params?.limit) query.set("limit", String(params.limit));
+    const qs = query.toString();
+    return this.request<PaginatedResponse<IngestedDocument>>(
+      `/folders/${folderId}/documents${qs ? `?${qs}` : ""}`,
+    );
+  }
+
+  async getContractDocuments(
+    contractId: string,
+    params?: { page?: number; limit?: number },
+  ): Promise<PaginatedResponse<IngestedDocument>> {
+    const query = new URLSearchParams();
+    if (params?.page) query.set("page", String(params.page));
+    if (params?.limit) query.set("limit", String(params.limit));
+    const qs = query.toString();
+    return this.request<PaginatedResponse<IngestedDocument>>(
+      `/contracts/${contractId}/documents${qs ? `?${qs}` : ""}`,
+    );
+  }
+
+  async searchDocuments(
+    query: string,
+    limit = 20,
+  ): Promise<DocumentSearchResult[]> {
+    return this.request<DocumentSearchResult[]>("/documents/search", {
+      method: "POST",
+      body: JSON.stringify({ query, limit }),
+    });
+  }
+
+  async getIngestionStats(): Promise<IngestionStats> {
+    return this.request<IngestionStats>("/dashboard/ingestion-stats");
   }
 }
 
