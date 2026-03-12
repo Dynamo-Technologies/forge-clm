@@ -1,5 +1,5 @@
 import type { PageServerLoad } from "./$types.js";
-import type { DashboardMetrics, ComplianceItem, ActivityEvent } from "$lib/types.js";
+import type { DashboardMetrics, ComplianceItem, ActivityEvent, IngestionStats } from "$lib/types.js";
 
 export const load: PageServerLoad = async ({ locals, fetch: skFetch }) => {
   const apiBase =
@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({ locals, fetch: skFetch }) => {
     : {};
 
   // Parallel fetch all dashboard data
-  const [metricsRes, complianceRes, overdueRes, activityRes] =
+  const [metricsRes, complianceRes, overdueRes, activityRes, ingestionRes] =
     await Promise.allSettled([
       skFetch(`${apiBase}/dashboard/metrics`, { headers }).then((r) =>
         r.ok ? r.json() : null,
@@ -24,6 +24,9 @@ export const load: PageServerLoad = async ({ locals, fetch: skFetch }) => {
       ),
       skFetch(`${apiBase}/activity/recent?limit=20`, { headers }).then(
         (r) => (r.ok ? r.json() : []),
+      ),
+      skFetch(`${apiBase}/dashboard/ingestion-stats`, { headers }).then(
+        (r) => (r.ok ? r.json() : null),
       ),
     ]);
 
@@ -40,5 +43,8 @@ export const load: PageServerLoad = async ({ locals, fetch: skFetch }) => {
     activity: (activityRes.status === "fulfilled"
       ? activityRes.value
       : []) as ActivityEvent[],
+    ingestionStats: (ingestionRes.status === "fulfilled"
+      ? ingestionRes.value
+      : null) as IngestionStats | null,
   };
 };

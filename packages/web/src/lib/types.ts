@@ -327,3 +327,72 @@ export interface ChartDataset {
   data: number[];
   labels: string[];
 }
+
+// ─── Document ingestion types ───────────────────────────────────────
+
+export interface ContractFolder {
+  id: string;
+  contractId: string | null;
+  libraryName: string;
+  folderPath: string;
+  folderName: string;
+  folderCategory: string;
+  documentCount: number;
+  totalSizeBytes: number;
+  lastSyncedAt: string | null;
+}
+
+export interface IngestedDocument {
+  id: string;
+  folderId: string | null;
+  contractId: string | null;
+  s3SourceKey: string;
+  s3TwinKey: string | null;
+  spItemId: string | null;
+  spPath: string | null;
+  spLibrary: string | null;
+  filename: string;
+  fileType: string | null;
+  documentCategory: string;
+  sizeBytes: number | null;
+  pageCount: number | null;
+  extractionStatus: string;
+  extractionMethod: string | null;
+  extractedText: string | null;
+  extractedAt: string | null;
+  spLastModified: string | null;
+  ingestedAt: string | null;
+  createdAt: string;
+}
+
+export interface DocumentDetail extends IngestedDocument {
+  extractedFields: DocumentExtractedField[];
+}
+
+export interface DocumentExtractedField {
+  id: string;
+  documentId: string;
+  fieldName: string;
+  fieldValue: string | null;
+  confidence: string | null;
+  sourcePage: number | null;
+}
+
+export interface IngestionStats {
+  totalDocuments: number;
+  byLibrary: Record<string, number>;
+  byStatus: Record<string, number>;
+  byCategory: Record<string, number>;
+  byFileType: Record<string, number>;
+  totalSizeBytes: number;
+  lastSyncAt: string | null;
+}
+
+export interface DocumentSearchResult {
+  id: string;
+  filename: string;
+  spLibrary: string | null;
+  documentCategory: string;
+  extractionStatus: string;
+  rank: number;
+}

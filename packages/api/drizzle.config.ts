@@ -3,6 +3,7 @@ import { defineConfig } from "drizzle-kit";
 export default defineConfig({
   schema: [
     "packages/api/src/db/schema.ts",
+    "packages/api/src/db/schema-documents.ts",
     "packages/api/src/db/schema-vectors.ts",
     "packages/api/src/db/schema-audit.ts",
     "packages/api/src/db/schema-agents.ts",

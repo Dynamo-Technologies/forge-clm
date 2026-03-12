@@ -8,6 +8,8 @@ import type {
   ContractOption,
   Communication,
   FsmTransition,
+  IngestedDocument,
+  PaginatedResponse,
 } from "$lib/types.js";
 
 export const load: PageServerLoad = async ({ locals, fetch: skFetch, params }) => {
@@ -29,6 +31,7 @@ export const load: PageServerLoad = async ({ locals, fetch: skFetch, params }) =
     optionsRes,
     commsRes,
     transitionsRes,
+    documentsRes,
   ] = await Promise.allSettled([
     skFetch(base, { headers }).then((r) => (r.ok ? r.json() : null)),
     skFetch(`${base}/clauses`, { headers }).then((r) => (r.ok ? r.json() : [])),
@@ -38,7 +41,10 @@ export const load: PageServerLoad = async ({ locals, fetch: skFetch, params }) =
     skFetch(`${base}/options`, { headers }).then((r) => (r.ok ? r.json() : [])),
     skFetch(`${base}/communications`, { headers }).then((r) => (r.ok ? r.json() : [])),
     skFetch(`${base}/transitions`, { headers }).then((r) => (r.ok ? r.json() : [])),
+    skFetch(`${base}/documents?limit=200`, { headers }).then((r) => (r.ok ? r.json() : { data: [] })),
   ]);
+
+  const docsResult = documentsRes.status === "fulfilled" ? documentsRes.value : { data: [] };
 
   return {
     contract: (contractRes.status === "fulfilled" ? contractRes.value : null) as ContractDetail | null,
@@ -49,5 +55,6 @@ export const load: PageServerLoad = async ({ locals, fetch: skFetch, params }) =
     options: (optionsRes.status === "fulfilled" ? optionsRes.value : []) as ContractOption[],
     communications: (commsRes.status === "fulfilled" ? commsRes.value : []) as Communication[],
     transitions: (transitionsRes.status === "fulfilled" ? transitionsRes.value : []) as FsmTransition[],
+    documents: ((docsResult as PaginatedResponse<IngestedDocument>).data ?? []) as IngestedDocument[],
   };
 };
